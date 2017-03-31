@@ -1,0 +1,173 @@
+/*
+get board size
+
+initializeMap
+drawMap
+createMap
+scrollMap
+
+createPlayers
+   Player, Health, Boss, Weapon, Enemies
+handleKeyPress
+
+canMove(x,y, direction)
+getRandomNumber
+flashLightMode
+*/
+
+let ActorInfo =  { 
+  player : { id :1, name : 'player', icon : 'user', max: 1 }, 
+  boss : { id :2,  name : 'boss', icon : 'frown-o', max: 1 },
+  enemy : { id :3,  name : 'enemy', icon : 'truck', max: 10 }, 
+  weapon : { id :4,  name : 'weapon', icon : 'scissors', max: 4 },
+  health : { id :5,  name : 'health', icon : 'heart ', max: 4 },
+  earth : { id :10, name : 'earth', icon : 'square'}, 
+  wall : { id :11, name : 'wall', icon : 'th'}, 
+  floor : { id :12, name : 'wall', icon : 'circle-o'},   
+};
+
+let ActorInfoMap = [];
+Object.keys(ActorInfo).map((e)  => {
+  //console.log(`key=${e}  value=${BuildInfo[e]}`);
+  ActorInfoMap[ActorInfo[e].id] = ActorInfo[e];
+  //console.log(ActorInfoMap);
+});
+
+
+
+let gameInfo = {
+  Attack: 0,
+  Level: 0,
+  NextXP: 0,
+  Boss: 0,
+  Enemy: 0,
+  Weapon: 0,
+  Health: 5
+};
+
+class actorManager {
+  constructor(props) {
+  }
+    create(board) {
+    for (let y = 0; y < this.boardSize.height * this.boardSize.width; y++) {
+      if (Math.random() > 0.5) {
+       // board[Math.floor(Math.random() * this.boardSize.height)][Math.floor(Math.random() * this.boardSize.width)] =  BuildInfo.wall.id;
+      }
+    }
+    return board;
+  }
+  
+}
+
+class mapManager {
+  constructor(props) {
+    this.boardSize = {};
+    this.mapSize = {};
+  }
+
+  setBoardSize(size) {
+    this.boardSize = size;
+  }
+  getBoardSize() {
+    return this.boardSize;
+  }
+  getMapSize() {
+    return this.mapSize;
+  }
+
+  create(board) {
+    for (let y = 0; y < this.boardSize.height * this.boardSize.width; y++) {
+      if (Math.random() > 0.90) {
+        board[Math.floor(Math.random() * this.boardSize.height)][Math.floor(Math.random() * this.boardSize.width)] = ActorInfo.wall.id;
+      }
+    }
+    return board;
+  }
+
+  initialize() {
+    let board = [];
+    for (let y = 0; y < this.boardSize.height; y++) {
+      var newRow = [];
+      for (let x = 0; x < this.boardSize.width; x++) {
+        newRow.push(ActorInfo.earth.id);
+      }
+      board.push(newRow);
+    }
+    return board;
+  }
+
+}
+
+const GameBoard = props => {
+
+  if (props.fullGameMap.length == 0)
+    return (<div> </div>)
+
+  let board = [],
+    style = ' fa fa-lock';
+
+  for (let y = 0; y < 12; y++) {
+    let boardColumns = [];
+    for (let x = 0; x < 20; x++) {
+      //style = props.gameMap[y][x] == BuildInfo.earth.id ? 'align-justify' : '';
+      //if (props.gameMap[y][x] == BuildInfo.earth.id) {                                                     }
+  style = ActorInfoMap[props.fullGameMap[y][x]].icon;
+       //console.log( BuildInfoMap[props.gameMap[y][x]].icon );
+      
+      boardColumns.push(<span key={x+''+y} className={"cell fa fa-"+style} data-xy={x+' '+y}></span>);
+    }
+    board.push(<div key={''+y} className="row"> {boardColumns} </div>);
+  }
+
+  return (<div> 
+       <div className="board"> {board}</div> 
+       </div>);
+}
+
+class DungeonCrawlerApp extends React.Component {
+
+  constructor(props) {
+    super(props);
+
+    this.mapManager = new mapManager();
+
+    this.boardSize = {
+      height: props.mapHeight,
+      width: props.mapWidth
+    };
+    this.mapManager.setBoardSize(this.boardSize);
+    this.mapSize = this.mapManager.getMapSize();
+
+    this.state = {
+      fullGameMap: []
+    };
+  }
+
+  readyGameBoard() {
+    let board = this.mapManager.initialize();
+    board = this.mapManager.create(board);
+
+    this.setState({
+      fullGameMap: board
+    });
+  }
+
+  componentDidMount() {
+    this.readyGameBoard();
+  }
+
+  render() {
+    return (<div className="container"> 
+              <div>Dashboard</div>
+              <div>Map</div>
+              <GameBoard fullGameMap = {this.state.fullGameMap} />
+            </div>)
+  }
+}
+
+ReactDOM.render(
+  <DungeonCrawlerApp mapWidth = "200" mapHeight = "300" />,
+  document.getElementById("app-root")
+);
+
+//http://www.evilscience.co.uk/creating-a-roguelike-game-view/

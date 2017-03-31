@@ -1,0 +1,19 @@
+body {
+  padding-top: 30px;
+}
+
+.cell {
+  width: 13px;
+  height: 15px;
+  border: 1px solid;
+  float: left;
+}
+.cell + .alive {
+  background: #fff;
+}
+.cell + .wall {
+  background: #fff;
+}
+.cell + .dead {
+  background: #000;
+}
