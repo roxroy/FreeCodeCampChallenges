@@ -15,54 +15,102 @@ getRandomNumber
 flashLightMode
 */
 
-let ActorInfo =  { 
-  player : { id :1, name : 'player', icon : 'user', max: 1 }, 
-  boss : { id :2,  name : 'boss', icon : 'frown-o', max: 1 },
-  enemy : { id :3,  name : 'enemy', icon : 'truck', max: 10 }, 
-  weapon : { id :4,  name : 'weapon', icon : 'scissors', max: 4 },
-  health : { id :5,  name : 'health', icon : 'heart ', max: 4 },
-  earth : { id :10, name : 'earth', icon : 'square'}, 
-  wall : { id :11, name : 'wall', icon : 'th'}, 
-  floor : { id :12, name : 'wall', icon : 'circle-o'},   
+let TILE = {
+  earth: '.',
+  wall: 'w',
+  floor: 'f',
+  player: 'p',
+  boss: 'b',
+  enemy: 'e',
+  weapon: 'a',
+  health: 'h'
+};
+let TitleMap = null;
+
+let ActorInfo = {
+  player: {
+    name: 'player',
+    icon: 'user',
+    max: 1
+  },
+  boss: {
+    name: 'boss',
+    icon: 'frown-o',
+    max: 1
+  },
+  enemy: {
+    name: 'enemy',
+    icon: 'truck',
+    max: 10
+  },
+  weapon: {
+    name: 'weapon',
+    icon: 'scissors',
+    max: 4
+  },
+  health: {
+    name: 'health',
+    icon: 'heart ',
+    max: 4
+  },
+  earth: {
+    name: 'earth',
+    icon: 'square'
+  },
+  wall: {
+    name: 'wall',
+    icon: 'th'
+  },
+  floor: {
+    name: 'floor',
+    icon: 'circle-o'
+  },
 };
 
-let ActorInfoMap = [];
-Object.keys(ActorInfo).map((e)  => {
-  //console.log(`key=${e}  value=${BuildInfo[e]}`);
-  ActorInfoMap[ActorInfo[e].id] = ActorInfo[e];
-  //console.log(ActorInfoMap);
-});
+let ActorStats = []; //   [position.x+''+position.y],  position, actorInfo, health
 
+class Actor {
+  constructor(y, x, actorInfo, health) {
+    this.x = x;
+    this.y = y;
+    this.actorInfo = actorInfo;
+    this.health = health;
+  }
+}
 
+let gameInfo = {};
 
-let gameInfo = {
-  Attack: 0,
-  Level: 0,
-  NextXP: 0,
-  Boss: 0,
-  Enemy: 0,
-  Weapon: 0,
-  Health: 5
+let Key = {
+  LEFT: 37,
+  UP: 38,
+  RIGHT: 39,
+  DOWN: 40
 };
+
+// Helper function
+const switchKeys = data => {
+  return Object.keys(data).reduce(function(obj, key) {
+    obj[data[key]] = key;
+    return obj;
+  }, {});
+};
+const randomRange = (min, max) => {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+class scoringSystem {
+  constructor(props) {}
+}
 
 class actorManager {
-  constructor(props) {
-  }
-    create(board) {
-    for (let y = 0; y < this.boardSize.height * this.boardSize.width; y++) {
-      if (Math.random() > 0.5) {
-       // board[Math.floor(Math.random() * this.boardSize.height)][Math.floor(Math.random() * this.boardSize.width)] =  BuildInfo.wall.id;
-      }
-    }
-    return board;
-  }
-  
+  constructor(props) {}
 }
 
 class mapManager {
   constructor(props) {
     this.boardSize = {};
     this.mapSize = {};
+    TitleMap = switchKeys(TILE);
   }
 
   setBoardSize(size) {
@@ -75,12 +123,100 @@ class mapManager {
     return this.mapSize;
   }
 
-  create(board) {
+  getFreeTile(board, tileType) {
+    let pos = {};
+    while (true) {
+      let row = Math.floor(Math.random() * this.boardSize.height);
+      let col = Math.floor(Math.random() * this.boardSize.width);
+      if (board[row][col] == tileType) {
+        return {
+          row: row,
+          col: col
+        };
+      };
+    }
+  }
+
+  createBoard(board) {
+
+    // Wall borders
+    /*
+    for (let y = 0; y < this.boardSize.height; y++) {
+      board[y][0] = TILE.wall;
+      board[y][this.boardSize.width-1] = TILE.wall;
+    }
+    for (let x = 0; x < this.boardSize.width; x++) {
+      board[0][x] = TILE.wall;
+      board[this.boardSize.height-1][x] = TILE.wall;
+    }
+    
+    
     for (let y = 0; y < this.boardSize.height * this.boardSize.width; y++) {
-      if (Math.random() > 0.90) {
-        board[Math.floor(Math.random() * this.boardSize.height)][Math.floor(Math.random() * this.boardSize.width)] = ActorInfo.wall.id;
+      if (Math.random() > 0.8) {
+        let tileSpot = this.getFreeTile(board, TILE.earth);
+        board[tileSpot.row][tileSpot.col] = TILE.wall;
+      }
+      if (Math.random() > 0.4) {
+        let tileSpot = this.getFreeTile(board, TILE.earth);
+        board[tileSpot.row][tileSpot.col] = TILE.floor;
       }
     }
+    */
+
+    var map = new ROT.Map.Rogue(this.boardSize.width, this.boardSize.height);
+    var display = new ROT.Display({
+      width: this.boardSize.width,
+      height: this.boardSize.height,
+      fontSize: 6
+    });
+    map.create(display.DEBUG);
+
+    for (let y = 0; y < this.boardSize.height; y++)
+      for (let x = 0; x < this.boardSize.width; x++) {
+        board[y][x] = map.map[x][y] ? TILE.wall : TILE.floor;
+      }
+
+    return board;
+  }
+
+  createActors(board) {
+    let characters = [{
+      who: TILE.player,
+      count: 1,
+      max: 1
+    }, {
+      who: TILE.boss,
+      count: 1,
+      max: 1
+    }, {
+      who: TILE.enemy,
+      count: 2,
+      max: 10
+    }, {
+      who: TILE.weapon,
+      count: 1,
+      max: 3
+    }, {
+      who: TILE.health,
+      count: 2,
+      max: 5
+    }];
+
+    let that = this;
+    ActorStats = [];
+    characters.forEach(function(element) {
+      let count = element.max - element.count + 1;
+      //console.log(element.who);
+      for (let i = 0; i < count; i++) {
+        let tileSpot = that.getFreeTile(board, TILE.floor),
+          health = 0,
+          actorInfo = ActorInfo[TitleMap[element.who]];
+        //console.log(actorInfo);
+        ActorStats.push(new Actor(tileSpot.row, tileSpot.col, actorInfo, health));
+        board[tileSpot.row][tileSpot.col] = element.who;
+      }
+    });
+
     return board;
   }
 
@@ -89,13 +225,74 @@ class mapManager {
     for (let y = 0; y < this.boardSize.height; y++) {
       var newRow = [];
       for (let x = 0; x < this.boardSize.width; x++) {
-        newRow.push(ActorInfo.earth.id);
+        newRow.push(TILE.earth);
       }
       board.push(newRow);
     }
     return board;
   }
 
+  makeMove(board, playerActor, next) {
+    let validMove = false,
+      bossKilled = false;
+    switch (board[next.y][next.x]) {
+      case TILE.floor:
+        validMove = true;
+        break;
+      case TILE.weapon:
+        validMove = true;
+        gameInfo.Points++;
+        break;
+      case TILE.health:
+        validMove = true;
+        gameInfo.Points++;
+        gameInfo.Health += 5;
+        break;
+      case TILE.enemy:
+        gameInfo.Health--;
+        if (Math.random() > 0.6) {
+          validMove = true;
+        }
+        break;
+      case TILE.boss:
+        gameInfo.Health -= 2;
+        if (Math.random() > 0.8) {
+          validMove = true;
+          bossKilled = true;
+        }
+        break;
+    }
+
+    if (validMove) {
+      board[playerActor.y][playerActor.x] = TILE.floor;
+      playerActor.y = next.y;
+      playerActor.x = next.x;
+      board[next.y][next.x] = TILE.player;
+    }
+    playerKilled
+
+    return {
+      board: board,
+      bossKilled: bossKilled
+    };
+
+  }
+}
+
+function ScoreBoard(props) {
+  //console.log(props);
+  return (<div className="text-center">
+      <div id="score-board">
+     <h1>Dungeon Crawler</h1>
+        
+            <div><span>Health</span><span>Points</span><span>Level</span></div>
+            <div>
+              <span>{props.gameInfo.Health}</span><span>{props.gameInfo.Points}</span><span>{props.gameInfo.Level}</span>
+        </div>
+               <button className="btn" onClick={props.handleFlashlightEvent}>FlashLight</button>
+               <button className="btn" onClick={props.handleRestartEvent}>Restart</button>
+
+          </div></div>);
 }
 
 const GameBoard = props => {
@@ -104,17 +301,25 @@ const GameBoard = props => {
     return (<div> </div>)
 
   let board = [],
+    viewport = {
+      rows: 20,
+      cols: 39
+    },
     style = ' fa fa-lock';
 
-  for (let y = 0; y < 12; y++) {
+  const pointInCircle = (x, y, cx, cy, radius) => {
+    var distancesquared = (x - cx) * (x - cx) + (y - cy) * (y - cy);
+    return distancesquared <= radius * radius;
+  }
+
+  for (let y = 0; y < viewport.rows; y++) {
     let boardColumns = [];
-    for (let x = 0; x < 20; x++) {
-      //style = props.gameMap[y][x] == BuildInfo.earth.id ? 'align-justify' : '';
-      //if (props.gameMap[y][x] == BuildInfo.earth.id) {                                                     }
-  style = ActorInfoMap[props.fullGameMap[y][x]].icon;
-       //console.log( BuildInfoMap[props.gameMap[y][x]].icon );
-      
-      boardColumns.push(<span key={x+''+y} className={"cell fa fa-"+style} data-xy={x+' '+y}></span>);
+    for (let x = 0; x < viewport.cols; x++) {
+      style = ActorInfo[TitleMap[props.fullGameMap[y][x]]].icon;
+      if (props.flashlight & !pointInCircle(x, y, ActorStats[0].x, ActorStats[0].y, 3)) {
+        style += " flashlight";
+      }
+      boardColumns.push(<span key={x+''+y} className={"cell fa fa-2x fa-"+style} data-xy={x+' '+y}></span>);
     }
     board.push(<div key={''+y} className="row"> {boardColumns} </div>);
   }
@@ -139,34 +344,130 @@ class DungeonCrawlerApp extends React.Component {
     this.mapSize = this.mapManager.getMapSize();
 
     this.state = {
-      fullGameMap: []
+      fullGameMap: [],
+      gameInfo: gameInfo
     };
+
+    this.handleKeyboardEvent = this.handleKeyboardEvent.bind(this);
+    this.handleFlashlightEvent = this.handleFlashlightEvent.bind(this);
+    this.handleRestartEvent = this.handleRestartEvent.bind(this);
+  }
+
+  generateGameBoard() {
+    let board = this.mapManager.initialize();
+    board = this.mapManager.createBoard(board);
+    board = this.mapManager.createActors(board);
+    return board;
   }
 
   readyGameBoard() {
-    let board = this.mapManager.initialize();
-    board = this.mapManager.create(board);
+    let board = this.generateGameBoard();
 
     this.setState({
       fullGameMap: board
     });
   }
 
+  startGameBoard() {
+    gameInfo = {
+      Health: 10,
+      Points: 0,
+      Level: 1,
+      NextXP: 0,
+      Boss: 0,
+      Enemy: 0,
+      Weapon: 0,
+      flashlight: true
+    };
+
+    this.readyGameBoard();    
+
+    this.setState({
+      gameInfo: gameInfo
+    });
+  }
+
   componentDidMount() {
-    this.readyGameBoard();
+    this.startGameBoard();
+    document.addEventListener('keydown', this.handleKeyboardEvent);
+  }
+
+  componentWillUnmount() {
+    document.removeEventListener('keydown', this.handleKeyboardEvent);
+  }
+
+  handleRestartEvent() {
+    this.startGameBoard();
+  }
+
+  handleFlashlightEvent() {
+    gameInfo.flashlight = !gameInfo.flashlight;
+
+    this.setState({
+      gameInfo: gameInfo
+    });
+  }
+
+  handleKeyboardEvent(evt) {
+    let x = 0,
+      y = 0,
+      keycode = evt.keyCode;
+    switch (keycode) {
+      case Key.LEFT:
+        x--;
+        break;
+      case Key.UP:
+        y--;
+        break;
+      case Key.RIGHT:
+        x++;
+        break;
+      case Key.DOWN:
+        y++;
+        break;
+    }
+
+    let playerActor = ActorStats[0];
+
+    //console.log(playerActor);
+    let board = this.state.fullGameMap;
+    let xPosition = playerActor.x + x;
+    let yPosition = playerActor.y + y;
+
+    let moveState = this.mapManager.makeMove(board, playerActor, {
+      x: xPosition,
+      y: yPosition
+    });
+
+    if (moveState.playerKilled) {      
+       gameInfo.Health = 10;
+    }
+
+    if (moveState.bossKilled) {
+      gameInfo.Level++;
+      moveState.board = this.generateGameBoard();
+    }
+
+    this.setState({
+      fullGameMap: moveState.board,
+      gameInfo: gameInfo
+    });
   }
 
   render() {
     return (<div className="container"> 
-              <div>Dashboard</div>
-              <div>Map</div>
-              <GameBoard fullGameMap = {this.state.fullGameMap} />
-            </div>)
+        <div>
+              <ScoreBoard gameInfo = {this.state.gameInfo} 
+                handleFlashlightEvent = {this.handleFlashlightEvent}
+                handleRestartEvent = {this.handleRestartEvent}/>
+              <GameBoard fullGameMap = {this.state.fullGameMap}
+                flashlight = {this.state.gameInfo.flashlight}/>
+            </div></div>)
   }
 }
 
 ReactDOM.render(
-  <DungeonCrawlerApp mapWidth = "200" mapHeight = "300" />,
+  <DungeonCrawlerApp mapWidth = "39" mapHeight = "20" />,
   document.getElementById("app-root")
 );
 

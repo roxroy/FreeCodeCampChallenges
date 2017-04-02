@@ -1,10 +1,10 @@
 body {
-  padding-top: 30px;
+  padding: 30px 0;
 }
 
 .cell {
-  width: 13px;
-  height: 15px;
+  width: 30px;
+  height: 30px;
   border: 1px solid;
   float: left;
 }
@@ -16,4 +16,37 @@ body {
 }
 .cell + .dead {
   background: #000;
+}
+
+.flashlight {
+  color: #ccc;
+  background: #ccc;
+}
+
+#score-board {
+  background: #ff7e5f;
+  padding: 10px 1px;
+}
+#score-board h1 {
+  font-family: Copperplate, "Copperplate Gothic Light", fantasy;
+  font-size: 64px;
+  font-weight: 500;
+  line-height: 26.4px;
+  margin: 1px 0 15px 0;
+  border-bottom: 2px solid black;
+  padding: 15px 0 20px;
+}
+#score-board button {
+  position: relative;
+  left: -220px;
+  top: -33px;
+}
+#score-board button:last-child {
+  left: 200px;
+}
+#score-board span {
+  display: inline-block;
+  width: 120px;
+  border: 2px solid black;
+  font-size: 24px;
 }
